@@ -1,7 +1,10 @@
 package com.luv2code.springbootlibrary.dao;
 
 import com.luv2code.springbootlibrary.entity.Book;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /*
     Just by using JPA's Repository you have lots of methods by default
@@ -18,6 +21,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
     DELETE  /books/{id}     Delete one book
  */
 public interface BookRepository extends JpaRepository<Book, Long> {
+
+    /*
+        How you write the name of the method determines what it does. Is not the same
+        findByTitleContaining thn findByTitle
+     */
+
+    Page<Book> findByTitleContaining(@RequestParam("title") String title, Pageable pageable);
+
+    Page<Book> findByCategory(@RequestParam("category") String category, Pageable pageable);
 
 
 }
