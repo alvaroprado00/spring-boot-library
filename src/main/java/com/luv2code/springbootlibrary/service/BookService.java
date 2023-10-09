@@ -2,8 +2,10 @@ package com.luv2code.springbootlibrary.service;
 
 import com.luv2code.springbootlibrary.dao.BookRepository;
 import com.luv2code.springbootlibrary.dao.CheckoutRepository;
+import com.luv2code.springbootlibrary.dao.HistoryRepository;
 import com.luv2code.springbootlibrary.entity.Book;
 import com.luv2code.springbootlibrary.entity.Checkout;
+import com.luv2code.springbootlibrary.entity.History;
 import com.luv2code.springbootlibrary.responsemodels.ShelfCurrentLoansResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +16,7 @@ import javax.transaction.Transactional;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -26,9 +29,12 @@ public class BookService {
 
     private CheckoutRepository checkoutRepository;
 
-    public BookService(BookRepository bookRepository, CheckoutRepository checkoutRepository){
+    private HistoryRepository historyRepository;
+
+    public BookService(BookRepository bookRepository, CheckoutRepository checkoutRepository, HistoryRepository historyRepository){
         this.bookRepository=bookRepository;
         this.checkoutRepository=checkoutRepository;
+        this.historyRepository=historyRepository;
     }
 
     public Book checkoutBook(String userEmail, Long bookId) throws Exception{
@@ -113,6 +119,14 @@ public class BookService {
         book.get().setCopiesAvailable(book.get().getCopiesAvailable()+1);
         bookRepository.save(book.get());
         checkoutRepository.delete(validateCheckout);
+
+        //After returning a book we create a History entry in the DB
+
+        String todayDate= LocalDate.now().toString();
+        History history = new History(userEmail, validateCheckout.getCheckoutDate(),todayDate,
+                book.get().getTitle(), book.get().getAuthor(), book.get().getDescription(), book.get().getImg());
+
+        historyRepository.save(history);
     }
 
     public void renewLoan(String userEmail, Long bookId) throws Exception{
